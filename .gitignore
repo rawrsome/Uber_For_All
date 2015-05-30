@@ -1,0 +1,6 @@
+# this is the swap file for vim                                                                                                                                                                             
+*.swp
+#file created by OS - Mac 
+.DS_Store 
+# dont not track the tmp folder and files within
+tmp/**/*
