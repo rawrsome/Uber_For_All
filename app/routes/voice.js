@@ -8,7 +8,7 @@ module.exports = function(){
         this.speak = function(twimlResponse){
             twimlResponse.say("Welcome to Uber for all , please select any one of the options");
             twimlResponse.pause(2);
-            twimlResponse.gather({timeout: 20, finishOnKey: '#', numOfDigits: 4}, function(){
+            twimlResponse.gather({timeout: 20, finishOnKey: '#', numOfDigits: 4}, function(response){
                 twimlResponse.say("To continue using this service please enter you Pin followed by a pound sign");
             });
         }
@@ -18,32 +18,29 @@ module.exports = function(){
         var User = mongoose.model('User');
         var result = false;
         this.name = "EnterPin";
+        User.find({ phone: '4087017051', pin: '1234'}, function(err, user){
+            if(err){
+                console.log(err);
+                this.validPin  = false ;
+            }else{
+                this.validPin  = true ;
+            }
+        });
 
-        this.speak = function(twimlResponse, pin, response){
-            User.find({ phone: '4087017051'}, function(err, user){
-                console.log(user);
-                result = true;
-                if(result){ //pin is validated
-                    twimlResponse.gather({timeout: 20, finishOnKey: '#', numOfDigits: 1}, function(){
-                        console.log("i am inside");
+        this.speak = function(twimlResponse, pin){
+            twimlResponse.gather({timeout: 20, finishOnKey: '#', numOfDigits: 1}, function(){
+                    if(!(validPin)){
+                        twimlResponse.say("The entered credentials are not valid");//this workd
+                        twimlResponse.say("please try again, Bye");
+                        this.next = this.reset;
+                    }else{
                         twimlResponse.say("Your pin was validated as " + pin);
                         twimlResponse.pause(1);
                         twimlResponse.say("Do you want to reserve a ride");
                         twimlResponse.say("Press 1 for yes and 0 for No");
-                        response.writeHead(200,{
-                            'Content-type': 'text/xml'
-                        });
-
-                        response.end(resp.toString());
-                    });
-                } else{
-                    twimlResponse.say("The entered credentials are not valid");//this workd
-                    twimlResponse.say("please try again, Bye");
-                    this.next = this.reset;
-                }
+                    }
             });
         };
-
     }
 
     function EnterPickUpLocation(){

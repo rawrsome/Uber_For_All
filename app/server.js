@@ -18,7 +18,7 @@ app.post('/',function(request,response){
 
     state = state.next;
     response.writeHead(200,{
-        'Content-type': 'text/xml'
+        'content-type': 'text/xml'
     });
 
     response.end(resp.toString());
@@ -28,5 +28,3 @@ app.post('/',function(request,response){
 app.listen(8999, function(){
     console.log("I am listening");
 });
-
-
