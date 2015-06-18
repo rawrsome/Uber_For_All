@@ -25,17 +25,21 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.static(__dirname + '/client'));
+
 app.set('views', __dirname + '/client/views');
 app.set('view engine','ejs');
+
 // bodyparser for handling post data
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(bodyParser.json());
+// app.use(bodyParser.json());
 
 // post to show unauthorized request
 app.post('/cars', function(request, response) {
   getRequest('/v1/products?latitude='+request.body.start_latitude+'&longitude='+request.body.start_longitude, function(err, res) {
     // console.log("response is: ");
     // console.log(res);
+    // console.log("=============");
+    // console.log(request.body.start_longitude);
     response.json(res);
   })
 })
@@ -98,6 +102,7 @@ app.get('/auth/uber',
 	passport.authenticate('uber',
 		{ scope: ['profile', 'history', 'history_lite', 'request', 'request_receipt'] }
 	)
+
 );
 
 // authentication callback redirects to /login if authentication failed or home if successful
@@ -131,24 +136,92 @@ app.get('/history', ensureAuthenticated, function (request, response) {
 });
 
 // ride request API endpoint
-app.post('/request', ensureAuthenticated, function (request, response) {
+app.post('/request_reqId', ensureAuthenticated, function (request, response) {
 	// NOTE! Keep in mind that, although this link is a GET request, the actual ride request must be a POST, as shown below
+  console.log("This is the user request:");
+  console.log(request.user);
 	var parameters = {
 		start_latitude : request.body.start_latitude,
 		start_longitude: request.body.start_longitude,
 		end_latitude: request.body.end_latitude,
 		end_longitude: request.body.end_longitude,
 		product_id: "a1111c8c-c720-46c3-8534-2fcdd730040d"
-	};
+	};  
 
-	postAuthorizedRequest('/v1/requests', request.user.accessToken, parameters, function (error, res) {
-		if (error) { console.log(error); }
-    console.log('post response from function call:')
-    console.log(res);
+  postAuthorizedRequest('/v1/requests?'+parameters.product_id+'&start_latitude='+request.body.start_latitude+'&start_longitude='+request.body.start_longitude+'&end_latitude='+parameters.end_latitude+'&end_longitude='+parameters.end_longitude, request.user.accessToken, parameters, function (error, res, pars) {
+    if (error) { console.log(error); }    
+    console.log("SEARCHING FOR DRIVER...");
+    console.log(res);    
+
+    // console.log("FULL RESPONSE");
+    console.log(pars);
     // response.json(res);
-		response.render("response", {info: res});
-	});
+    response.render("response", {info: res, params: pars});
+  });
 });
+
+app.post('/reqAccepted/:id', ensureAuthenticated, function (request, response) {
+  console.log("My access token: ");
+  console.log(request.user.accessToken);
+  parameters = {
+    "status": "accepted"
+  }
+  var url_id = request.url.split("/").pop();
+  postAuthorizedRequest('/v1/sandbox/requests/'+url_id+'?access_token='+request.user.accessToken, request.user.accessToken, parameters, function (error, res) {
+    console.log("Requested response: ");
+    console.log(res);
+  })
+})
+
+app.get("/getUpdate/:id", ensureAuthenticated, function (request, response) {
+  var url_id = request.url.split("/").pop();
+  console.log(url_id)
+  getAuthorizedRequest('/v1/requests/'+url_id, request.user.accessToken, function (error, res) {
+    // console.log('RES BODY HERE: ');
+    console.log(res);
+    res.render("response", {info: res});
+  });
+});
+
+
+
+
+// app.post('/requestDriver/:id', ensureAuthenticated, function (request, response) {
+//   postAuthorizedRequest('/v1/sandbox/requests/')
+// })
+
+
+// get updated status from API endpoint
+app.get('/track/:id', ensureAuthenticated, function (request, response) {
+  // console.log("Get request from /track:");
+  // console.log(request.body);
+  // var url_id = request.url.split("/").pop();
+  // console.log("request id from URL: ");
+  // console.log(url_id);
+  // console.log(request.body);
+  // console.log("http header: ");
+  // console.log(response);
+  // var resData;
+
+  getAuthorizedRequest('/v1/requests/'+url_id, request.user.accessToken, function (error, res) {
+
+    // if(url) {
+    //   var id_url = url;
+    //   console.log(id_url);
+    // }
+    // console.log("Access TokeN:");
+    // console.log(request.user.accessToken);
+    if (error) { console.log(error); }
+    console.log("--=== Tracking Uber Car: ===--");
+    console.log(res)
+    // response.json(res);
+    // resData = res;
+    // console.log(resData)''
+    response.render("response", {info: res});
+  });
+      // console.log(res);
+
+})
 
 // logout
 app.get('/logout', function (request, response) {
@@ -176,8 +249,6 @@ function getAuthorizedRequest(endpoint, accessToken, callback) {
   }
   var req = https.request(options, function(res) {
     res.on('data', function(data) {
-      console.log('data form get request:');
-      console.log(JSON.parse(data));
       callback(null, JSON.parse(data));
     })
   })
@@ -193,16 +264,16 @@ function postAuthorizedRequest(endpoint, accessToken, parameters, callback) {
     path: endpoint,
     method: "POST",
     headers: {
-      Authorization: "Bearer " + accessToken,
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      Authorization: "Bearer " + accessToken
     }
   }
+  console.log('Requesting a ride from the sandbox with the query: ');
+  console.log(endpoint);
   var req = https.request(options, function(res) {
-    res.on('data', function(data) {
-      console.log("data parameter looks like:");
-      console.log(data);
-      console.log('data from post request:');
-      console.log(JSON.parse(data));
+    res.on('data', function(data) {      
+      // console.log('data from post request:');
+      // console.log(JSON.parse(data));
       callback(null, JSON.parse(data));
     })
   })
@@ -215,5 +286,5 @@ function postAuthorizedRequest(endpoint, accessToken, parameters, callback) {
 
 // start server
 var server = app.listen(8000, function(){
-	console.log('listening to port: 8000');
+	console.log('Established connection to 8000');
 });

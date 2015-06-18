@@ -1,3 +1,7 @@
+/<%= info.request_id %>
+<h4>product ID: <%= productId %></h4>
+<input type="hidden" name="product_id" value="<%= productId %>">
+
 # Uber API Node.js Starter Kit 
 
 Use this Starter Kit to connect to the Uber API using Node.js and Express.js

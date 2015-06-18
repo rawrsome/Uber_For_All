@@ -5,14 +5,39 @@
 	<title></title>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
 	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+	<script type="text/javascript" src="../script/script.js"></script>
 </head>
+
+<script type="text/javascript">
+	// $(document).ready(function() {
+	// 	for(var i=0;i<3;i++);
+	// 		$('#dots').append('.');
+	// })
+</script>
+
 <body>
 	<h1>This is the response page</h1>
 
+	<p>Status: <%= info.status %><span id='dots'></span></p>
+	<p>request ID: <%= info.request_id %></p>
+	<p>ETA: <%= info.eta %> minutes</p>
+	
+	<form action="/reqAccepted/<%= info.request_id %>" method="post">
+		<input type="submit" value="Change Status to 'accepted'">
+	</form>
 
-		<p><%= info.status %></p>
-		<p><%= info.request_id %></p>
-		<p><%= info.eta %></p>
+	<a href="/getUpdate/<%= info.request_id %>"><button>Get Update</button></a>
+
+
+
+	<input id="p_id" type="hidden" name="p_id" value="<%= info.request_id %>">
+
+	<script type="text/javascript">		
+		// console.log($("#p_id").val());
+		// $.get('/track/' + $("#p_id").val(), function (response) {
+		// 	console.log(response);
+		// })
+	</script>
 
 
 </body>
