@@ -10,8 +10,37 @@
 	<h2>Welcome to the Uber App Sandbox</h2>
 	<h4>You are now authenticated within Uber.</h4>
 	<h4>Sample Endpoints:</h4>
+
+	<h3>User</h3>
 	<p><a href="/profile">Profile</a></p>
+
+	<ul id='profile'></ul>
+
 	<p><a href="/history">History</a></p>
+	<ul id='history'></ul>
+
+	<h3>Product Information</h3>
+	<form action='/priceestimate' method='post'>
+		<input type='submit' value='POST Request Price Estimate'>
+	</form>
+	
+	<p><a href="/timeestimate">POST Request Time Estimate</a></p>
+
+	<h3>Requests</h3>
+
+	<form action="/requestUberBlack" method="post">POST Requests (Requests UBER car)
+		<input type="submit" value="request an Uber Black car!!!">
+	</form>
+
+	<p><a href="/requestdetails">POST Request Details</a></p>
+	
+	<p><a href="/map">POST Request Map</a></p>
+	<p><a href="/delete">DELETE Cancel Request</a></p>
+	<p><a href="/receipt">GET Ride Receipt</a></p>
+
+
+
+
 	<div id="location">
 		<p>Loading geolocation...</p>
 	</div>
@@ -22,10 +51,30 @@
 	</form> -->
 
 	<script type="text/javascript">
-	console.log('hi');
-	// $.get('/reqProducts', function(response) {
-	// 	console.log(response);
-	// });
+		$(document).ready(function(){
+			console.log('document is ready');
+
+			$.get('/profile', function (res){
+				console.log('here is the user\'s uber profile');
+				console.log(res);
+				for ( var i in res ) {
+					$('#profile').append("<li>" + i + ": " + res[i] + "</li>");
+				} 
+			});
+
+			$.get('/history', function (res){
+				console.log('here is the user\'s uber history');
+				console.log(res);
+				for ( var i in res ) {
+					$('#history').append("<li>" + i + ": " + res[i] + "</li>");
+				} 
+			});			
+
+
+		});
+	</script>
+
+	<script type="text/javascript">
 
 	var locationDiv = document.getElementById("location");
 
